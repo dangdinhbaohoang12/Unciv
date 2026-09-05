@@ -10,7 +10,8 @@ import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.ruleset.unit.UnitType
 import yairm210.purity.annotations.Readonly
 
-class MapUnitCombatant(val unit: MapUnit) : ICombatant {
+@JvmInline
+value class MapUnitCombatant(val unit: MapUnit) : ICombatant {
     override fun getHealth(): Int = unit.health
     override fun getMaxHealth() = 100
     override fun getCivInfo(): Civilization = unit.civ
@@ -66,23 +67,8 @@ class MapUnitCombatant(val unit: MapUnit) : ICombatant {
         unit.getMatchingUniques(uniqueType, gameContext, checkCivUniques)
 
     @Readonly
-    override fun getTriggeredUniques(
-        trigger: UniqueType,
-        gameContext: GameContext,
-        triggerFilter: (Unique) -> Boolean
-    ): Sequence<Unique> {
-        return unit.getTriggeredUniques(trigger, gameContext, triggerFilter)
-    }
-
-    @Readonly
     fun hasUnique(uniqueType: UniqueType, conditionalState: GameContext? = null): Boolean =
         if (conditionalState == null) unit.hasUnique(uniqueType)
         else unit.hasUnique(uniqueType, conditionalState)
-    
-    @Readonly
-    override fun hashCode() = unit.hashCode()
-    @Readonly
-    override fun equals(other: Any?) = other is MapUnitCombatant && other.unit == unit
-
 
 }
