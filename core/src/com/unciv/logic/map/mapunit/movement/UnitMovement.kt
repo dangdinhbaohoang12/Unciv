@@ -609,6 +609,7 @@ class UnitMovement(val unit: MapUnit) {
         }
 
         val finalTileReached = lastReachedEnterableTile
+        val pathToFinalTileReached = distanceToTiles.getPathToTile(finalTileReached)
 
         // Silly floats which are almost zero
         if (unit.currentMovement < Constants.minimumMovementEpsilon)
@@ -621,7 +622,7 @@ class UnitMovement(val unit: MapUnit) {
         // bring along the payloads
         for (payload in payloadUnits) {
             payload.removeFromTile()
-            for (tile in pathToLastReachableTile) {
+            for (tile in pathToFinalTileReached) {
                 payload.moveThroughTile(tile)
                 if (tile == finalTileReached) break // this is the final tile the transport reached
             }
