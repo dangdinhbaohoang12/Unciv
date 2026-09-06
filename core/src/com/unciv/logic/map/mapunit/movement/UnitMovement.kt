@@ -843,7 +843,7 @@ class UnitMovement(val unit: MapUnit) {
             return CannotMoveToReason.CannotEnterCityCenter
 
         if (includeOtherEscortUnit && unit.isEscorting()
-            && unit.getOtherEscortUnit()!!.movement.getCannotMoveToReason(tile, assumeCanPassThrough, allowSwap, includeOtherEscortUnit = false, treatHiddenUnitAsEmpty) != null)
+            && unit.getOtherEscortUnit()!!.movement.getCannotMoveToReason(tile, assumeCanPassThrough, allowSwap, includeOtherEscortUnit = false, treatHiddenUnitAsEmpty = treatHiddenUnitAsEmpty) != null)
             return CannotMoveToReason.EscortCannotMove
 
         // The invisibility carve-out below is checked last, after every other blocking reason -
