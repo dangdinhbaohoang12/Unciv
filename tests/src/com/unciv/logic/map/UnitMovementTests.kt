@@ -407,6 +407,7 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
         val hiddenTile = ourTile.neighbors.first()
         val hiddenCivilian = testGame.addUnit("Worker", otherCiv, hiddenTile)
         hiddenCivilian.promotions.addPromotion(testGame.createUnitPromotion(UniqueType.Invisible.text).name)
+        assertFalse(hiddenCivilian.isVisibleTo(civInfo))
         val ourUnit = testGame.addUnit("Warrior", civInfo, ourTile)
 
         assertFalse(civInfo.viewableInvisibleUnitsTiles.contains(hiddenTile))
