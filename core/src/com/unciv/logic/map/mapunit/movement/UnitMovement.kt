@@ -775,11 +775,11 @@ class UnitMovement(val unit: MapUnit) {
     }
 
     /**
-     * If [tile] is occupied by a unit of another civilization - friendly/allied or an enemy we're
-     * at war with - that [unit]'s civ cannot currently see (e.g. an undetected submarine), returns
-     * that unit. Returns null if the tile is genuinely enterable, or if it's blocked by a unit
-     * that's already visible to us (and thus handled by the normal move-blocking checks). Our own
-     * civ's units are always visible to us, so they're never returned here.
+     * If [cannotPassThroughReason] identifies [tile] as
+     * [CannotMoveToReason.TileIsNotEmptyHiddenUnit], returns the unseen unit blocking it (e.g. an
+     * undetected submarine). Returns null for tiles that can be passed through, including
+     * capturable unguarded at-war civilians, and for visible blockers handled by normal movement
+     * checks.
      *
      * We deliberately let [thinksItCanMoveTo] and [canPassThrough] treat such a tile as passable,
      * so the player can still order the move - exactly as in the base game, attempting to move
@@ -790,9 +790,14 @@ class UnitMovement(val unit: MapUnit) {
      */
     @Readonly
     private fun getHiddenBlockingUnit(tile: Tile): MapUnit? {
+        // A hidden unit only blocks a move when it is the reason this tile cannot be passed
+        // through. In particular, an unguarded at-war civilian is capturable and
+        // cannotPassThroughReason() deliberately returns null for it.
+        if (cannotPassThroughReason(tile) != CannotMoveToReason.TileIsNotEmptyHiddenUnit) return null
+
         // Check both unit slots independently - a tile can hold one of our own units in one slot
-        // while an undetected unit of another civ (friendly/allied or hostile) occupies the other
-        // slot (e.g. a submarine sharing a tile with a surface unit). An elvis fallback between
+        // while an undetected blocking unit of another civ occupies the other slot (e.g. a
+        // submarine sharing a tile with a surface unit). An elvis fallback between
         // the two slots would let whichever slot is checked first (previously: militaryUnit) mask
         // a hidden unit sitting in the other slot, letting moveToTile() silently overwrite/stack
         // onto it unannounced.

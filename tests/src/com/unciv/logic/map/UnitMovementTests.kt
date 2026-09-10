@@ -398,6 +398,28 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
     }
 
     @Test
+    fun `hidden capturable civilian is captured without being revealed as a blocker`() {
+        val otherCiv = testGame.addCiv()
+        civInfo.diplomacy[otherCiv.civName] = DiplomacyManager(civInfo, otherCiv)
+        civInfo.getDiplomacyManager(otherCiv)!!.diplomaticStatus = DiplomaticStatus.War
+
+        val ourTile = testGame.tileMap[0, 0]
+        val hiddenTile = ourTile.neighbors.first()
+        val hiddenCivilian = testGame.addUnit("Worker", otherCiv, hiddenTile)
+        hiddenCivilian.promotions.addPromotion(testGame.createUnitPromotion(UniqueType.Invisible.text).name)
+        val ourUnit = testGame.addUnit("Warrior", civInfo, ourTile)
+
+        assertFalse(civInfo.viewableInvisibleUnitsTiles.contains(hiddenTile))
+        assertEquals(null, ourUnit.movement.cannotPassThroughReason(hiddenTile))
+
+        ourUnit.movement.moveToTile(hiddenTile)
+
+        assertEquals(hiddenTile, ourUnit.currentTile)
+        assertEquals(civInfo, hiddenCivilian.civ)
+        assertFalse(civInfo.viewableInvisibleUnitsTiles.contains(hiddenTile))
+    }
+
+    @Test
     fun twoEscortsCanSwap() {
         val settler1 = testGame.addUnit("Settler", civInfo, testGame.tileMap[1,1])
         val settler2 = testGame.addUnit("Settler", civInfo, testGame.tileMap[2,2])
