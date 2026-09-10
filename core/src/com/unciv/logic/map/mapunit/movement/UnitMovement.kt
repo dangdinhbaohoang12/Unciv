@@ -790,23 +790,29 @@ class UnitMovement(val unit: MapUnit) {
      */
     @Readonly
     private fun getHiddenBlockingUnit(tile: Tile): MapUnit? {
-        // A hidden unit only blocks a move when it is the reason this tile cannot be passed
-        // through. In particular, an unguarded at-war civilian is capturable and
-        // cannotPassThroughReason() deliberately returns null for it.
-        if (cannotPassThroughReason(tile) != CannotMoveToReason.TileIsNotEmptyHiddenUnit) return null
+        // Do not use cannotPassThroughReason() here: it checks only getFirstUnit(), so an
+        // occupant in the military slot can mask an invisible foreign civilian in the other slot.
+        // Check each slot for both units that are moving together instead.
+        val movingUnits = if (unit.isEscorting())
+            sequenceOf(unit, unit.getOtherEscortUnit()!!)
+        else
+            sequenceOf(unit)
 
-        // Check both unit slots independently - a tile can hold one of our own units in one slot
-        // while an undetected blocking unit of another civ occupies the other slot (e.g. a
-        // submarine sharing a tile with a surface unit). An elvis fallback between
-        // the two slots would let whichever slot is checked first (previously: militaryUnit) mask
-        // a hidden unit sitting in the other slot, letting moveToTile() silently overwrite/stack
-        // onto it unannounced.
-        fun MapUnit.asHiddenBlockerOrNull(): MapUnit? {
-            if (civ == unit.civ) return null // our own units are always visible to us
-            if (isVisibleTo(unit.civ)) return null
-            return this
+        fun MapUnit.isHiddenBlockerFor(movingUnit: MapUnit): Boolean {
+            if (civ == movingUnit.civ || isVisibleTo(movingUnit.civ)) return false
+
+            // Preserve cannotPassThroughReason()'s exception for an unguarded civilian that can
+            // be captured while moving through the tile.
+            if (isCivilian() && movingUnit.civ.isAtWarWith(civ)
+                && !(movingUnit.baseUnit.isLandUnit && tile.isWater && !movingUnit.cache.canMoveOnWater))
+                return false
+
+            return true
         }
-        return tile.militaryUnit?.asHiddenBlockerOrNull() ?: tile.civilianUnit?.asHiddenBlockerOrNull()
+
+        return sequenceOf(tile.militaryUnit, tile.civilianUnit)
+            .filterNotNull()
+            .firstOrNull { occupant -> movingUnits.any { occupant.isHiddenBlockerFor(it) } }
     }
 
     /**
