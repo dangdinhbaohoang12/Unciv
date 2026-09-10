@@ -33,8 +33,8 @@ class HiddenUnitMultiTurnPathTests(private val pathfindingAlgorithm: Pathfinding
 
     @Before
     fun initTheWorld() {
-        UncivGame.Current.settings.useAStarPathfinding = (pathfindingAlgorithm == AStarPathfinding)
         testGame = TestGame()
+        UncivGame.Current.settings.useAStarPathfinding = (pathfindingAlgorithm == AStarPathfinding)
         testGame.makeHexagonalMap(4)
         civInfo = testGame.addCiv()
         civInfo.tech.techsResearched.addAll(testGame.ruleset.technologies.keys)
