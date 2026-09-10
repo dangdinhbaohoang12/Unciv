@@ -382,10 +382,13 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
         assertTrue("A tile whose only problem is a hidden unit must stay passable, so it isn't routed around",
             ourUnit.movement.canPassThrough(hiddenTile))
 
+        val movementBeforeDiscoveryAttempt = ourUnit.currentMovement
         ourUnit.movement.moveToTile(hiddenTile)
 
         // The attempt must stop right before actually entering/overwriting the hidden unit's tile...
         assertEquals("Unit must not enter or stack onto the hidden unit's tile", ourTile, ourUnit.currentTile)
+        assertEquals("Unit must not spend movement attempting to enter a tile blocked by a hidden enemy",
+            movementBeforeDiscoveryAttempt, ourUnit.currentMovement)
         assertEquals("The hidden unit must still be exactly where it was, never overwritten", hiddenUnit, hiddenTile.militaryUnit)
         // ...but the attempt itself must be what reveals it
         assertTrue("Moving towards the tile must be what reveals the hidden unit",
