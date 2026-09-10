@@ -401,6 +401,24 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
     }
 
     @Test
+    fun `discovered invisible unit moving away does not reveal a new occupant of its old tile`() {
+        val otherCiv = testGame.addCiv()
+        val ourTile = testGame.tileMap[0, 0]
+        val hiddenTile = ourTile.neighbors.first()
+        val hiddenUnit = testGame.addDefaultMeleeUnitWithUniques(otherCiv, hiddenTile, UniqueType.Invisible.text)
+        val ourUnit = testGame.addUnit("Warrior", civInfo, ourTile)
+
+        ourUnit.movement.moveToTile(hiddenTile)
+        assertTrue(civInfo.viewableInvisibleUnitsTiles.contains(hiddenTile))
+
+        hiddenUnit.movement.moveToTile(hiddenTile.neighbors.first { it != ourTile })
+        testGame.addDefaultMeleeUnitWithUniques(otherCiv, hiddenTile, UniqueType.Invisible.text)
+
+        civInfo.cache.updateViewableTiles()
+        assertFalse(civInfo.viewableInvisibleUnitsTiles.contains(hiddenTile))
+    }
+
+    @Test
     fun `hidden capturable civilian is captured without being revealed as a blocker`() {
         val otherCiv = testGame.addCiv()
         civInfo.diplomacy[otherCiv.civName] = DiplomacyManager(civInfo, otherCiv)
