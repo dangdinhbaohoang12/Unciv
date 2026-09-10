@@ -26,6 +26,8 @@ import com.unciv.logic.automation.Timers.Companion.timeThis
 /** CivInfo class was getting too crowded */
 class CivInfoTransientCache(val civInfo: Civilization) {
 
+    private val discoveredInvisibleUnitTiles = HashSet<Tile>()
+
     @Transient
     var lastEraResourceUsedForBuilding = java.util.HashMap<String, Int>()
 
@@ -166,7 +168,12 @@ class CivInfoTransientCache(val civInfo: Civilization) {
             }
         }
 
+        newViewableInvisibleTiles.addAll(discoveredInvisibleUnitTiles)
         civInfo.viewableInvisibleUnitsTiles = newViewableInvisibleTiles
+    }
+
+    fun addDiscoveredInvisibleUnitTile(tile: Tile) {
+        discoveredInvisibleUnitTiles.add(tile)
     }
 
     var ourTilesAndNeighboringTiles: Set<Tile> = HashSet()

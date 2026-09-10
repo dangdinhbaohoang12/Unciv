@@ -826,6 +826,7 @@ class UnitMovement(val unit: MapUnit) {
         // Reveal this tile's normally-invisible unit(s) to us, the same way the game already
         // displays any other detected-but-invisible unit. This is what makes the discovery
         // actually show up on the map, not just in the notification text below.
+        unit.civ.cache.addDiscoveredInvisibleUnitTile(tile)
         unit.civ.viewableInvisibleUnitsTiles = unit.civ.viewableInvisibleUnitsTiles + tile
         for (civUnit in unit.civ.units.getCivUnits())
             civUnit.movement.clearPathfindingCache()

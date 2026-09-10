@@ -393,6 +393,9 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
         // ...but the attempt itself must be what reveals it
         assertTrue("Moving towards the tile must be what reveals the hidden unit",
             civInfo.viewableInvisibleUnitsTiles.contains(hiddenTile))
+        civInfo.cache.updateViewableTiles()
+        assertTrue("A discovered hidden unit must remain visible after sight recalculation",
+            civInfo.viewableInvisibleUnitsTiles.contains(hiddenTile))
         assertFalse("Once revealed, canMoveTo must correctly block on the now-visible enemy",
             ourUnit.movement.canMoveTo(hiddenTile))
     }
