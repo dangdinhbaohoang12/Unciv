@@ -15,10 +15,11 @@ jobs:
           ref: c217d7d08483ebb72bdbc25bf6712dd849846321
           fetch-depth: 1
 
-      - name: Create ZIP with exactly the 8 PR files
+      - name: Collect exactly the 8 PR files
         shell: bash
         run: |
           set -euo pipefail
+          rm -rf export
           mkdir -p export
           files=(
             core/src/com/unciv/logic/civilization/transients/CivInfoTransientCache.kt
@@ -35,12 +36,10 @@ jobs:
             mkdir -p "export/$(dirname "$f")"
             cp "$f" "export/$f"
           done
-          cd export
-          zip -r ../Unciv-PR8-8-files.zip .
 
-      - name: Upload ZIP artifact
+      - name: Upload 8 files as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Unciv-PR8-8-files
-          path: Unciv-PR8-8-files.zip
+          name: Unciv-PR8-8-files-raw
+          path: export
           if-no-files-found: error
