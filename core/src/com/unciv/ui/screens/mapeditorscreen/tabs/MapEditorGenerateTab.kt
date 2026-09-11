@@ -190,16 +190,24 @@ class MapEditorGenerateTab(
                         JsonReader().parse(clipboardContents)
                     )
                     mapParametersTable.update()
+                    addMapResourceListener()
+                    updateMapResourcesForPainting()
                 } catch (exception: Exception) {
                     Log.error("Could not load map generation settings", exception)
                     ToastPopup("Could not load map!", parent.editorScreen)
                 }
             }
-            mapParametersTable.resourceSelectBox.onChange {
-                parent.editorScreen.run {
-                    // normally the 'new map' parameters are independent, this needs to be an exception so strategic resource painting will use it
-                    tileMap.mapParameters.mapResources = newMapParameters.mapResources
-                }
+            addMapResourceListener()
+        }
+
+        private fun addMapResourceListener() {
+            mapParametersTable.resourceSelectBox.onChange { updateMapResourcesForPainting() }
+        }
+
+        private fun updateMapResourcesForPainting() {
+            parent.editorScreen.run {
+                // normally the 'new map' parameters are independent, this needs to be an exception so strategic resource painting will use it
+                tileMap.mapParameters.mapResources = newMapParameters.mapResources
             }
         }
     }
