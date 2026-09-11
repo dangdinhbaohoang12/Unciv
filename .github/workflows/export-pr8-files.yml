@@ -1,0 +1,46 @@
+name: Export PR #8 files
+
+on:
+  push:
+    branches:
+      - export-pr8-files
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact PR commit
+        uses: actions/checkout@v4
+        with:
+          ref: c217d7d08483ebb72bdbc25bf6712dd849846321
+          fetch-depth: 1
+
+      - name: Create ZIP with exactly the 8 PR files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p export
+          files=(
+            core/src/com/unciv/logic/civilization/transients/CivInfoTransientCache.kt
+            core/src/com/unciv/logic/map/PathingMap.kt
+            core/src/com/unciv/logic/map/mapunit/movement/UnitMovement.kt
+            core/src/com/unciv/ui/screens/worldscreen/worldmap/WorldMapHolder.kt
+            core/src/com/unciv/ui/screens/worldscreen/worldmap/WorldMapTileUpdater.kt
+            core/src/com/unciv/view/MapUnitView.kt
+            tests/src/com/unciv/logic/map/HiddenUnitMultiTurnPathTests.kt
+            tests/src/com/unciv/logic/map/UnitMovementTests.kt
+          )
+          for f in "${files[@]}"; do
+            test -f "$f"
+            mkdir -p "export/$(dirname "$f")"
+            cp "$f" "export/$f"
+          done
+          cd export
+          zip -r ../Unciv-PR8-8-files.zip .
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Unciv-PR8-8-files
+          path: Unciv-PR8-8-files.zip
+          if-no-files-found: error
