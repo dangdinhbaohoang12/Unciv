@@ -343,11 +343,11 @@ internal class WorkerAutomationTest {
         testGame.addCity(civInfo, testGame.tileMap[-2,0])
         testGame.addCity(civInfo, testGame.tileMap[2,0])
         val dangerousRoadTile = testGame.tileMap[0,0]
-        val worker = testGame.addUnit("Worker", civInfo, dangerousRoadTile)
+        val worker = testGame.addUnit("Worker", civInfo, testGame.tileMap[-1,1])
         val automation = WorkerAutomation(civInfo, 3)
 
         for (x in -2..2)
-            if (x != 0)
+            if (x != -1 && x != 0)
                 testGame.tileMap[x,0].setRoadStatus(RoadStatus.Road, civInfo)
 
         val previousPrioritizeRoadConnections = UncivGame.Current.settings.prioritizeRoadConnections
