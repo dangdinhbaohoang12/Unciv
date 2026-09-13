@@ -134,7 +134,7 @@ open class TileGroup(
 
         // "Highlight roads" map overlay (see GitHub issue #15417): dim the terrain so that the
         // vividly-recoloured road/railroad images drawn by layerFeatures stand out more clearly.
-        if (UncivGame.Current.settings.showRoadHighlight)
+        if (!isForMapEditorIcon && UncivGame.Current.settings.showRoadHighlight)
             layerTerrain.dim(0.35f)
     }
 
