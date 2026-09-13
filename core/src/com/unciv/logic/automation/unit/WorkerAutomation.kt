@@ -78,12 +78,15 @@ class WorkerAutomation(
     fun automateWorkerAction(unit: MapUnit, dangerousTiles: HashSet<Tile>): Unit = timeThis("automateWorkerAction") {
         val currentTile = unit.getTile()
         val currentTileIsCreatesOneImprovementMarker = currentTile.isMarkedForCreatesOneImprovement()
+        val currentTileIsDangerousAndNotImproving =
+            dangerousTiles.contains(currentTile) && currentTile.improvementInProgress == null
         // Must be called before any getPriority checks to guarantee the local road cache is processed
         val citiesToConnect = roadBetweenCitiesAutomation.getNearbyCitiesToConnect(unit)
 
         // Optionally prioritize finishing city connections over general tile improvement (see #15417).
         // Skipped while the unit is mid-improvement on its current tile, so we don't abandon work in progress.
         if (UncivGame.Current.settings.prioritizeRoadConnections
+            && !currentTileIsDangerousAndNotImproving
             && !(currentTile.improvementInProgress != null && !currentTileIsCreatesOneImprovementMarker)
             && roadBetweenCitiesAutomation.tryConnectingCities(unit, citiesToConnect)) return
 
@@ -111,9 +114,8 @@ class WorkerAutomation(
         if (tryHeadTowardsUndevelopedCity(unit, currentTile)) return
 
         // Nothing to do, try again to connect cities
-        if (roadBetweenCitiesAutomation.tryConnectingCities(unit, citiesToConnect)) return
-
-
+        if (!currentTileIsDangerousAndNotImproving
+            && roadBetweenCitiesAutomation.tryConnectingCities(unit, citiesToConnect)) return
         debug("WorkerAutomation: %s -> nothing to do", unit.toString())
         unit.civ.addNotification("${unit.shortDisplayName()} has no work to do.", MapUnitAction(unit), NotificationCategory.Units, unit.name, "OtherIcons/Sleep")
 
