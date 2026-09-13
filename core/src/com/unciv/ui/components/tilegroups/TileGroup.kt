@@ -2,7 +2,6 @@ package com.unciv.ui.components.tilegroups
 
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Group
-import com.unciv.UncivGame
 import com.unciv.view.CivView
 import com.unciv.view.TileMapView
 import com.unciv.view.TileView
@@ -131,11 +130,6 @@ open class TileGroup(
         setAllLayersVisible(true)
 
         for (layer in allLayers) layer.update(viewingCiv)
-
-        // "Highlight roads" map overlay (see GitHub issue #15417): dim the terrain so that the
-        // vividly-recoloured road/railroad images drawn by layerFeatures stand out more clearly.
-        if (!isForMapEditorIcon && UncivGame.Current.settings.showRoadHighlight)
-            layerTerrain.dim(0.35f)
     }
 
     override fun draw(batch: Batch?, parentAlpha: Float) { super.draw(batch, parentAlpha) }
