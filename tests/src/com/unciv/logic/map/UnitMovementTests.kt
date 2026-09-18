@@ -216,6 +216,7 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
         testGame.gameInfo.civilizations.add(barbCiv)
 
         testGame.addUnit("Warrior", barbCiv, tile)
+        civInfo.viewableTiles = setOf(tile)
 
         for (type in testGame.ruleset.unitTypes.values) {
             val outUnit = addFakeUnit(type)
@@ -410,6 +411,11 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
         // ...but the attempt itself must be what reveals it
         assertTrue("Moving towards the tile must be what reveals the hidden unit",
             civInfo.viewableInvisibleUnitsTiles.contains(hiddenTile))
+        civInfo.viewableTiles = emptySet()
+        assertTrue("A remembered invisible unit must remain visible after its tile enters fog",
+            hiddenUnit.isVisibleTo(civInfo))
+        val ordinaryUnit = testGame.addUnit("Worker", otherCiv, hiddenTile)
+        assertFalse("Ordinary units on a fogged tile must remain hidden", ordinaryUnit.isVisibleTo(civInfo))
         civInfo.cache.updateViewableTiles()
         assertTrue("A discovered hidden unit must remain visible after sight recalculation",
             civInfo.viewableInvisibleUnitsTiles.contains(hiddenTile))
@@ -433,6 +439,37 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
 
         civInfo.cache.updateViewableTiles()
         assertFalse(civInfo.viewableInvisibleUnitsTiles.contains(hiddenTile))
+    }
+
+    @Test
+    fun `replacing remembered invisible unit tiles synchronizes all-unit markers immediately`() {
+        val otherCiv = testGame.addCiv()
+        val oldTile = testGame.tileMap[0, 0].neighbors.first()
+        val newTile = oldTile.neighbors.first { it != testGame.tileMap[0, 0] }
+        val hiddenMilitary = testGame.addDefaultMeleeUnitWithUniques(otherCiv, oldTile, UniqueType.Invisible.text)
+        val hiddenCivilian = testGame.addUnit("Worker", otherCiv, oldTile).also {
+            it.promotions.addPromotion(testGame.createUnitPromotion(UniqueType.Invisible.text).name)
+        }
+
+        civInfo.cache.addDiscoveredInvisibleUnitTile(hiddenMilitary, oldTile)
+        civInfo.cache.addDiscoveredInvisibleUnitTile(hiddenCivilian, oldTile)
+        civInfo.viewableInvisibleUnitsTiles = mapOf(oldTile to setOf(Constants.uppercaseAll, "Water"))
+
+        hiddenMilitary.movement.moveToTile(newTile)
+        civInfo.cache.addDiscoveredInvisibleUnitTile(hiddenMilitary, newTile)
+        assertEquals(
+            "Another memory on the old tile must retain the all-units marker",
+            setOf(Constants.uppercaseAll, "Water"),
+            civInfo.viewableInvisibleUnitsTiles[oldTile]
+        )
+
+        hiddenCivilian.movement.moveToTile(newTile)
+        civInfo.cache.addDiscoveredInvisibleUnitTile(hiddenCivilian, newTile)
+        assertEquals(
+            "Replacing the final memory must remove only the all-units marker",
+            setOf("Water"),
+            civInfo.viewableInvisibleUnitsTiles[oldTile]
+        )
     }
 
     @Test
