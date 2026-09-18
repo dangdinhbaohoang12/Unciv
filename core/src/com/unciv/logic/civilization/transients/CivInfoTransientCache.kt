@@ -11,6 +11,7 @@ import com.unciv.logic.civilization.Proximity
 import com.unciv.logic.civilization.transients.CapitalConnectionsFinder.CapitalConnectionMedium
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.MapShape
+import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.ruleset.Building
 import com.unciv.models.ruleset.tile.ResourceSupplyList
@@ -163,7 +164,23 @@ class CivInfoTransientCache(val civInfo: Civilization) {
             }
         }
 
+        civInfo.discoveredInvisibleUnitTiles.removeAll { memory ->
+            // The unit isn't stored directly (it needs to persist through save/load), so re-resolve
+            // it from its last-known tile by id each time, and drop the memory once it no longer holds.
+            val lastKnownTile = civInfo.gameInfo.tileMap[memory.tilePosition]
+            lastKnownTile.getUnits().none { it.id == memory.unitId && !it.isDestroyed }
+        }
+        for (memory in civInfo.discoveredInvisibleUnitTiles) {
+            val tile = civInfo.gameInfo.tileMap[memory.tilePosition]
+            newViewableInvisibleTiles.getOrPut(tile) { HashSet() }.add(Constants.uppercaseAll)
+        }
         civInfo.viewableInvisibleUnitsTiles = newViewableInvisibleTiles
+    }
+
+    fun addDiscoveredInvisibleUnitTile(unit: MapUnit, tile: Tile) {
+        // Replace any existing memory of this unit (it may have moved) rather than accumulating duplicates
+        civInfo.discoveredInvisibleUnitTiles.removeAll { it.unitId == unit.id }
+        civInfo.discoveredInvisibleUnitTiles.add(Civilization.DiscoveredInvisibleUnitMemory(unit.id, tile.position))
     }
 
     var ourTilesAndNeighboringTiles: Set<Tile> = HashSet()
