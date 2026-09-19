@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # 1. Tự động kiểm tra và nâng cấp các plugin/thư viện của Gradle
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "daily" # Kiểm tra hàng ngày cho an toàn
+
+  # 2. Tự động kiểm tra và cập nhật phiên bản cho các GitHub Actions (như CodeQL, setup-java...)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly" # Quét hàng tuần
