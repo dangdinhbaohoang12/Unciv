@@ -170,10 +170,6 @@ class CivInfoTransientCache(val civInfo: Civilization) {
             val lastKnownTile = civInfo.gameInfo.tileMap[memory.tilePosition]
             lastKnownTile.getUnits().none { it.id == memory.unitId && !it.isDestroyed }
         }
-        for (memory in civInfo.discoveredInvisibleUnitTiles) {
-            val tile = civInfo.gameInfo.tileMap[memory.tilePosition]
-            newViewableInvisibleTiles.getOrPut(tile) { HashSet() }.add(Constants.uppercaseAll)
-        }
         civInfo.viewableInvisibleUnitsTiles = newViewableInvisibleTiles
     }
 
@@ -181,9 +177,6 @@ class CivInfoTransientCache(val civInfo: Civilization) {
         // Replace any existing memory of this unit (it may have moved) rather than accumulating duplicates
         civInfo.discoveredInvisibleUnitTiles.removeAll { it.unitId == unit.id }
         civInfo.discoveredInvisibleUnitTiles.add(Civilization.DiscoveredInvisibleUnitMemory(unit.id, tile.position))
-        // Rebuild instead of subtracting Constants.uppercaseAll from the old tile: that value may
-        // also come from a live universal detector, and the combined map does not track its source.
-        updateViewableInvisibleTiles()
     }
 
     var ourTilesAndNeighboringTiles: Set<Tile> = HashSet()
