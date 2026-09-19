@@ -347,7 +347,7 @@ jobs:
         if: needs.get-release-body.outputs.release_body != ''
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        uses: Ilshidur/action-discord@0.3.2
+        uses: Ilshidur/action-discord@0.4.0
         with:
           args: | # See https://discordjs.guide/miscellaneous/parsing-mention-arguments.html#how-discord-mentions-work
             <@&663705024265715743>
