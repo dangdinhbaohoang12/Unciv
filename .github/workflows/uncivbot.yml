@@ -40,7 +40,7 @@ jobs:
     steps:
 
       - name: Merge Pull Request
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.ACTIONS_ACCESS_TOKEN }} # Required because default workflow token can't merge PRs
           script: |
