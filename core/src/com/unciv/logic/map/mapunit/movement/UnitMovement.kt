@@ -1171,7 +1171,7 @@ class UnitMovement(val unit: MapUnit) {
     }
 
     /** @return Whether [tile] is part of any of this unit's currently cached path data - either
-     *  the simple AI shortest-path cache, or a route already explored by one of the A*/road pathing
+     *  the simple AI shortest-path cache, or a route already explored by one of the A* or road pathing
      *  maps - used to decide whether a newly-discovered hidden unit on [tile] actually invalidates
      *  this unit's pathfinding cache, instead of clearing every unit's cache unconditionally. */
     @Readonly
