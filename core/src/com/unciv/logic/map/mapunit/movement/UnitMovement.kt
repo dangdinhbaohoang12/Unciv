@@ -49,10 +49,17 @@ import java.util.BitSet
 class UnitMovement(val unit: MapUnit) {
 
     @Cache private val pathfindingCache = PathfindingCache(unit)
-    @Cache private val aStarPathing by lazy { PathingMap.createUnitPathingMap(unit) }
-    @Cache private val aStarPathingWithoutZoneControl by lazy { PathingMap.createUnitPathingMap(unit, considerZoneOfControl = false) }
-    @Cache private val aStarPathingWithoutEscort by lazy { PathingMap.createUnitPathingMap(unit, includeEscortUnit = false) }
-    @Cache private val roadPathing by lazy { PathingMap.createRoadPathingMap(unit.civ, unit.currentTile) }
+    // Exposed as explicit Lazy instances (rather than `by lazy`) so pathCachePassesThroughTile and
+    // clearPathfindingCache can check isInitialized() and skip caches that were never actually used,
+    // instead of forcing every unit to construct all four pathing maps on every hidden-unit discovery.
+    @Cache private val aStarPathingLazy = lazy { PathingMap.createUnitPathingMap(unit) }
+    private val aStarPathing: PathingMap get() = aStarPathingLazy.value
+    @Cache private val aStarPathingWithoutZoneControlLazy = lazy { PathingMap.createUnitPathingMap(unit, considerZoneOfControl = false) }
+    private val aStarPathingWithoutZoneControl: PathingMap get() = aStarPathingWithoutZoneControlLazy.value
+    @Cache private val aStarPathingWithoutEscortLazy = lazy { PathingMap.createUnitPathingMap(unit, includeEscortUnit = false) }
+    private val aStarPathingWithoutEscort: PathingMap get() = aStarPathingWithoutEscortLazy.value
+    @Cache private val roadPathingLazy = lazy { PathingMap.createRoadPathingMap(unit.civ, unit.currentTile) }
+    private val roadPathing: PathingMap get() = roadPathingLazy.value
 
     class ParentTileAndTotalMovement(val tile: Tile, val parentTile: Tile, val totalMovement: Float)
 
@@ -1164,23 +1171,29 @@ class UnitMovement(val unit: MapUnit) {
 
     fun clearPathfindingCache() {
         pathfindingCache.clear()
-        aStarPathing.clear()
-        aStarPathingWithoutZoneControl.clear()
-        aStarPathingWithoutEscort.clear()
-        roadPathing.clear()
+        // Only clear caches that were actually initialized - accessing the `by lazy`-backed
+        // properties here would construct (and then immediately throw away) a pathing map that
+        // was never used, for every unit, on every clear.
+        if (aStarPathingLazy.isInitialized()) aStarPathing.clear()
+        if (aStarPathingWithoutZoneControlLazy.isInitialized()) aStarPathingWithoutZoneControl.clear()
+        if (aStarPathingWithoutEscortLazy.isInitialized()) aStarPathingWithoutEscort.clear()
+        if (roadPathingLazy.isInitialized()) roadPathing.clear()
     }
 
     /** @return Whether [tile] is part of any of this unit's currently cached path data - either
      *  the simple AI shortest-path cache, or a route already explored by one of the A* or road pathing
      *  maps - used to decide whether a newly-discovered hidden unit on [tile] actually invalidates
-     *  this unit's pathfinding cache, instead of clearing every unit's cache unconditionally. */
+     *  this unit's pathfinding cache, instead of clearing every unit's cache unconditionally.
+     *  Only already-initialized A-star/road caches are checked: an uninitialized cache has never
+     *  explored any tile, so it can never contain [tile] and does not need to be constructed just
+     *  to confirm that. */
     @Readonly
     fun pathCachePassesThroughTile(tile: Tile): Boolean =
         pathfindingCache.containsTile(tile) ||
-            aStarPathing.hasExploredTile(tile) ||
-            aStarPathingWithoutZoneControl.hasExploredTile(tile) ||
-            aStarPathingWithoutEscort.hasExploredTile(tile) ||
-            roadPathing.hasExploredTile(tile)
+            (aStarPathingLazy.isInitialized() && aStarPathing.hasExploredTile(tile)) ||
+            (aStarPathingWithoutZoneControlLazy.isInitialized() && aStarPathingWithoutZoneControl.hasExploredTile(tile)) ||
+            (aStarPathingWithoutEscortLazy.isInitialized() && aStarPathingWithoutEscort.hasExploredTile(tile)) ||
+            (roadPathingLazy.isInitialized() && roadPathing.hasExploredTile(tile))
 
 }
 
@@ -1227,11 +1240,17 @@ class PathfindingCache(private val unit: MapUnit) {
         shortestPathCache = listOf()
     }
 
-    /** @return Whether [tile] is part of the currently cached shortest path. Human-civ units never
-     *  populate this cache (see [getShortestPathCache]/[setShortestPathCache]), so this is always
-     *  false for them, which is correct: there's nothing to invalidate. */
+    /** @return Whether [tile] might affect the currently cached shortest path. Human-civ units
+     *  never populate this cache (see [getShortestPathCache]/[setShortestPathCache]), so this is
+     *  always false for them, which is correct: there's nothing to invalidate.
+     *
+     *  [shortestPathCache] only stores one waypoint per turn along the route (see
+     *  [UnitMovement.getShortestPath]), not every tile actually traversed between those
+     *  waypoints - so checking `tile in shortestPathCache` would miss a hidden unit discovered on
+     *  an intermediate tile, leaving this cache stale. Since we don't retain the full tile-by-tile
+     *  route, conservatively treat any tile as relevant whenever a path is actually cached. */
     @Readonly
-    fun containsTile(tile: Tile): Boolean = tile in shortestPathCache
+    fun containsTile(tile: Tile): Boolean = shortestPathCache.isNotEmpty()
 }
 
 /** Should contain current unit location even when it has no movement */

@@ -535,11 +535,16 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
         assertTrue("The unit must remain visible after moving and being re-detected",
             hiddenUnit.isVisibleTo(civInfo))
 
-        // The old memory must be gone, not just superseded: a different invisible unit that later
-        // occupies the vacated tile must NOT inherit the stale sighting.
-        val replacementUnit = testGame.addDefaultMeleeUnitWithUniques(otherCiv, oldTile, UniqueType.Invisible.text)
-        assertFalse("A stale memory of the old tile must not reveal a different unit that replaces it",
-            replacementUnit.isVisibleTo(civInfo))
+        // The old memory must be gone, not just superseded: re-registering hiddenUnit on newTile
+        // must have dropped its old memory entry pointing at oldTile, rather than leaving it
+        // around as a second, stale entry. isVisibleTo() matches purely by unit id, so a
+        // different invisible unit occupying oldTile could never be revealed by this stale entry
+        // regardless of whether it was actually cleaned up - checking the memory itself is
+        // required to actually exercise the cleanup.
+        assertEquals("The memory of hiddenUnit must point at its new tile, not linger on the old one",
+            newTile.position, civInfo.cache.discoveredInvisibleUnitPositions[hiddenUnit.id])
+        assertEquals("hiddenUnit must have exactly one remembered position, not one per tile it has occupied",
+            1, civInfo.discoveredInvisibleUnitMemories.count { it.unitId == hiddenUnit.id })
     }
 
     @Test

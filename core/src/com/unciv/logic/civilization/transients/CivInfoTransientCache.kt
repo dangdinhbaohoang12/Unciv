@@ -197,8 +197,9 @@ class CivInfoTransientCache(val civInfo: Civilization) {
     fun addDiscoveredInvisibleUnitTile(unit: MapUnit, tile: Tile) {
         // Replace any existing memory of this unit (it may have moved) rather than accumulating
         // duplicates. No rebuild of viewableInvisibleUnitsTiles is needed here: remembered-unit
-        // visibility is read straight off discoveredInvisibleUnitMemories by MapUnit.isVisibleTo(),
-        // matching both unitId and tilePosition, so it stays independent of live detector filters.
+        // visibility is read by MapUnit.isVisibleTo() from the discoveredInvisibleUnitPositions
+        // index (updated below), matching both unitId and tilePosition, so it stays independent
+        // of live detector filters.
         civInfo.discoveredInvisibleUnitMemories.removeAll { it.unitId == unit.id }
         civInfo.discoveredInvisibleUnitMemories.add(Civilization.DiscoveredInvisibleUnitMemory(unit.id, tile.position))
         // Keep the O(1) lookup cache in sync immediately, rather than waiting for the next

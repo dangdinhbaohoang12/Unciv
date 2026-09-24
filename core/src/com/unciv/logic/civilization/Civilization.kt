@@ -304,8 +304,14 @@ class Civilization : IsPartOfGameInfoSerialization, Json.Serializable {
     override fun write(json: Json) = json.writeFields(this)
 
     override fun read(json: Json, jsonData: JsonValue) {
-        if (jsonData.get("discoveredInvisibleUnitMemories") == null)
-            jsonData.get("discoveredInvisibleUnitTiles")?.name = "discoveredInvisibleUnitMemories"
+        if (jsonData.get("discoveredInvisibleUnitMemories") == null) {
+            val oldNode = jsonData.get("discoveredInvisibleUnitTiles")
+            // Guard against a null-valued old node: renaming it in place would otherwise
+            // overwrite the non-null discoveredInvisibleUnitMemories field with null,
+            // causing an NPE later in updateViewableInvisibleTiles.
+            if (oldNode != null && !oldNode.isNull)
+                oldNode.name = "discoveredInvisibleUnitMemories"
+        }
         json.readFields(this, jsonData)
     }
 

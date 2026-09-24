@@ -225,8 +225,11 @@ object WorldMapTileUpdater {
                 group.layerImprovement.dimImprovement(true)
             group.layerCityButton.moveDown()
         }
-        val civView = worldScreen.selectedGameView.civView
-        for (cityView in civView.cities() + civView.getKnownCivs().flatMap { it.cities() }) {
+        // Use every explored city, not just those of civs the player has met: a spy can also be
+        // moved to an explored city of an unmet civ (see EspionageOverviewScreen's location list
+        // and WorldMapHolder.addMovingSpyOverlay), so restricting this to known civs would leave
+        // such a destination selectable elsewhere but without its cyan move highlight here.
+        for (cityView in worldScreen.selectedGameView.getExploredCities()) {
             if (spyView.canMoveTo(cityView)) {
                 tileGroups[cityView.getCenterTile()]!!.layerOverlay.showHighlight(Color.CYAN, .7f)
             }
