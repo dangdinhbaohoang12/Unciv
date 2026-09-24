@@ -98,6 +98,16 @@ class PathingMap(
         cacheRef.set(null)
     }
 
+    /** @return Whether this map's current cache has already explored (has an initialized
+     *  [RouteNode] for) [tile] - i.e. whether a change to [tile]'s passability could actually be
+     *  reflected in a cached route. Used to skip clearing caches that never looked at [tile]. */
+    @Readonly
+    @Suppress("purity")
+    fun hasExploredTile(tile: Tile): Boolean {
+        val cache = cacheRef.get() ?: return false
+        return RouteNode(cache.routeNodes[tile.zeroBasedIndex]).initialized
+    }
+
     @Suppress("purity")
     private fun fetchCache(): PathingMapCache {
         val latestKey = getCurrentCacheKey()

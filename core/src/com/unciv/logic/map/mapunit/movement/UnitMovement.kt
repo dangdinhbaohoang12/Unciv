@@ -825,8 +825,13 @@ class UnitMovement(val unit: MapUnit) {
      */
     private fun notifyHiddenBlockingUnitDiscovered(hiddenUnit: MapUnit, tile: Tile) {
         unit.civ.cache.addDiscoveredInvisibleUnitTile(hiddenUnit, tile)
+        // Only units whose cached path actually ran through the now-known-to-be-blocked tile need
+        // their pathfinding cache invalidated - clearing every unit's cache here would be a
+        // noticeable spike for a civ with hundreds of units, for a discovery that's almost always
+        // locally relevant.
         for (civUnit in unit.civ.units.getCivUnits())
-            civUnit.movement.clearPathfindingCache()
+            if (civUnit.movement.pathCachePassesThroughTile(tile))
+                civUnit.movement.clearPathfindingCache()
 
         if (unit.civ.isAtWarWith(hiddenUnit.civ)) {
             unit.civ.addNotification(
@@ -1165,6 +1170,18 @@ class UnitMovement(val unit: MapUnit) {
         roadPathing.clear()
     }
 
+    /** @return Whether [tile] is part of any of this unit's currently cached path data - either
+     *  the simple AI shortest-path cache, or a route already explored by one of the A*/road pathing
+     *  maps - used to decide whether a newly-discovered hidden unit on [tile] actually invalidates
+     *  this unit's pathfinding cache, instead of clearing every unit's cache unconditionally. */
+    @Readonly
+    fun pathCachePassesThroughTile(tile: Tile): Boolean =
+        pathfindingCache.containsTile(tile) ||
+            aStarPathing.hasExploredTile(tile) ||
+            aStarPathingWithoutZoneControl.hasExploredTile(tile) ||
+            aStarPathingWithoutEscort.hasExploredTile(tile) ||
+            roadPathing.hasExploredTile(tile)
+
 }
 
 /**
@@ -1209,6 +1226,12 @@ class PathfindingCache(private val unit: MapUnit) {
         destination = null
         shortestPathCache = listOf()
     }
+
+    /** @return Whether [tile] is part of the currently cached shortest path. Human-civ units never
+     *  populate this cache (see [getShortestPathCache]/[setShortestPathCache]), so this is always
+     *  false for them, which is correct: there's nothing to invalidate. */
+    @Readonly
+    fun containsTile(tile: Tile): Boolean = tile in shortestPathCache
 }
 
 /** Should contain current unit location even when it has no movement */

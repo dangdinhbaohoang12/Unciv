@@ -297,7 +297,7 @@ class Civilization : IsPartOfGameInfoSerialization {
     /** Deep clone an ArrayList of [DiscoveredInvisibleUnitMemory]s. */
     @Readonly private fun ArrayList<DiscoveredInvisibleUnitMemory>.copyDiscoveredInvisibleUnitMemories() = ArrayList(this.map { it.clone() })
     /** @see DiscoveredInvisibleUnitMemory */
-    var discoveredInvisibleUnitTiles = ArrayList<DiscoveredInvisibleUnitMemory>()
+    var discoveredInvisibleUnitMemories = ArrayList<DiscoveredInvisibleUnitMemory>()
 
     var hasMovedAutomatedUnits = false
 
@@ -379,7 +379,7 @@ class Civilization : IsPartOfGameInfoSerialization {
         toReturn.totalCultureForContests = totalCultureForContests
         toReturn.totalFaithForContests = totalFaithForContests
         toReturn.attacksSinceTurnStart = attacksSinceTurnStart.copyAttackMemories()
-        toReturn.discoveredInvisibleUnitTiles = discoveredInvisibleUnitTiles.copyDiscoveredInvisibleUnitMemories()
+        toReturn.discoveredInvisibleUnitMemories = discoveredInvisibleUnitMemories.copyDiscoveredInvisibleUnitMemories()
         toReturn.hasMovedAutomatedUnits = hasMovedAutomatedUnits
         toReturn.statsHistory = statsHistory.clone()
         toReturn.resourceStockpiles = resourceStockpiles.clone()
