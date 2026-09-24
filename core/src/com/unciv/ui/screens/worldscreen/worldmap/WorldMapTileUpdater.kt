@@ -225,11 +225,10 @@ object WorldMapTileUpdater {
                 group.layerImprovement.dimImprovement(true)
             group.layerCityButton.moveDown()
         }
-        for (foreignCivView in worldScreen.selectedGameView.civView.getKnownCivs()) {
-            for (cityView in foreignCivView.cities()) {
-                if (spyView.canMoveTo(cityView)) {
-                    tileGroups[cityView.getCenterTile()]!!.layerOverlay.showHighlight(Color.CYAN, .7f)
-                }
+        val civView = worldScreen.selectedGameView.civView
+        for (cityView in civView.cities() + civView.getKnownCivs().flatMap { it.cities() }) {
+            if (spyView.canMoveTo(cityView)) {
+                tileGroups[cityView.getCenterTile()]!!.layerOverlay.showHighlight(Color.CYAN, .7f)
             }
         }
     }

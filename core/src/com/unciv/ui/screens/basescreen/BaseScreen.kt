@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
@@ -85,6 +86,7 @@ abstract class BaseScreen : Screen {
         stage.installShortcutDispatcher(globalShortcuts, this::createDispatcherVetoer)
 
         if (fpsLabelContainer != null) {
+            fpsLabelContainer.touchable = Touchable.disabled
             fpsLabelContainer.pack()
             fpsLabelContainer.setPosition(0f, stage.height, Align.topLeft)
             stage.addActor(fpsLabelContainer)

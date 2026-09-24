@@ -1,5 +1,7 @@
 package com.unciv.logic.civilization
 
+import com.badlogic.gdx.utils.Json
+import com.badlogic.gdx.utils.JsonValue
 import com.unciv.Constants
 import com.unciv.UncivGame
 import com.unciv.json.LastSeenImprovement
@@ -57,7 +59,7 @@ enum class Proximity : IsPartOfGameInfoSerialization {
     Distant
 }
 
-class Civilization : IsPartOfGameInfoSerialization {
+class Civilization : IsPartOfGameInfoSerialization, Json.Serializable {
 
     @Transient
     private var workerAutomationCache: WorkerAutomation? = null
@@ -298,6 +300,14 @@ class Civilization : IsPartOfGameInfoSerialization {
     @Readonly private fun ArrayList<DiscoveredInvisibleUnitMemory>.copyDiscoveredInvisibleUnitMemories() = ArrayList(this.map { it.clone() })
     /** @see DiscoveredInvisibleUnitMemory */
     var discoveredInvisibleUnitMemories = ArrayList<DiscoveredInvisibleUnitMemory>()
+
+    override fun write(json: Json) = json.writeFields(this)
+
+    override fun read(json: Json, jsonData: JsonValue) {
+        if (jsonData.get("discoveredInvisibleUnitMemories") == null)
+            jsonData.get("discoveredInvisibleUnitTiles")?.name = "discoveredInvisibleUnitMemories"
+        json.readFields(this, jsonData)
+    }
 
     var hasMovedAutomatedUnits = false
 

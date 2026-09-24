@@ -22,6 +22,7 @@ class SpyView(private val spy: Spy,
 
     // Actions
     fun tryMoveTo(foreignCityView: ForeignCityView?): Boolean {
+        if (foreignCityView != null && !canMoveTo(foreignCityView)) return false
         spy.moveTo(foreignCityView?.getCity())
         return true
     }
