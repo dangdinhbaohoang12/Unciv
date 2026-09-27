@@ -632,6 +632,77 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
     }
 
     @Test
+    fun `visible blocker takes precedence over hidden blocker on the same path`() {
+        val otherCiv = testGame.addCiv()
+
+        val ourTile = testGame.tileMap[0, 0]
+        val blockerTile = ourTile.neighbors.first()
+        val destination = blockerTile.neighbors.first { it != ourTile }
+
+        // Force the route to leave our tile through blockerTile.
+        // This prevents the pathfinder from simply routing around the test blocker.
+        for (neighbor in ourTile.neighbors) {
+            if (neighbor == blockerTile) continue
+            neighbor.baseTerrain = Constants.mountain
+            neighbor.setTerrainFeatures(listOf())
+            neighbor.setTransients()
+        }
+
+        // This visible unit already explains why blockerTile cannot be entered.
+        val visibleMilitary = testGame.addUnit("Warrior", otherCiv, blockerTile)
+
+        // A second unit on the same tile is invisible.
+        // It must not be revealed because the visible military unit is already the
+        // movement blocker that explains why the tile cannot be entered.
+        val hiddenCivilian = testGame.addUnit("Worker", otherCiv, blockerTile).also {
+            it.promotions.addPromotion(
+                testGame.createUnitPromotion(UniqueType.Invisible.text).name
+            )
+        }
+
+        val ourUnit = testGame.addUnit("Warrior", civInfo, ourTile)
+
+        assertFalse(
+            "The hidden civilian must not be visible before the movement attempt",
+            hiddenCivilian.isVisibleTo(civInfo)
+        )
+        assertTrue(
+            "The visible foreign military unit must still be passable through while moving",
+            ourUnit.movement.canPassThrough(blockerTile)
+        )
+        assertFalse(
+            "The visible military unit must prevent ending movement on blockerTile",
+            ourUnit.movement.thinksItCanMoveTo(blockerTile)
+        )
+        assertTrue(
+            "The destination beyond the blocker must remain reachable",
+            ourUnit.movement.thinksItCanMoveTo(destination)
+        )
+
+        ourUnit.movement.moveToTile(destination)
+
+        assertEquals(
+            "The unit should continue past the visible blocker because it is only a through-tile obstacle",
+            destination,
+            ourUnit.currentTile
+        )
+        assertEquals(
+            "The visible military unit must remain on the blocker tile",
+            visibleMilitary,
+            blockerTile.militaryUnit
+        )
+        assertEquals(
+            "The hidden civilian must remain on the blocker tile",
+            hiddenCivilian,
+            blockerTile.civilianUnit
+        )
+        assertFalse(
+            "The hidden civilian must not be revealed when a visible blocker already explains the restriction",
+            hiddenCivilian.isVisibleTo(civInfo)
+        )
+    }
+
+    @Test
     fun twoEscortsCanSwap() {
         val settler1 = testGame.addUnit("Settler", civInfo, testGame.tileMap[1,1])
         val settler2 = testGame.addUnit("Settler", civInfo, testGame.tileMap[2,2])
