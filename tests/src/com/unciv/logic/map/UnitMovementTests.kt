@@ -637,7 +637,7 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
 
         val ourTile = testGame.tileMap[0, 0]
         val blockerTile = ourTile.neighbors.first()
-        val destination = blockerTile.neighbors.first { it.distanceTo(ourTile) == 2 }
+        val destination = blockerTile.neighbors.first { HexMath.getDistance(it.position, ourTile.position) == 2 }
 
         // Force the intended route through blockerTile so this regression test does not
         // succeed by simply choosing a different first step.
