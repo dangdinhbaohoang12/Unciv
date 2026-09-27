@@ -489,6 +489,47 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
     }
 
     @Test
+    fun `hidden unit is not discovered behind a visible blocking unit`() {
+        val otherCiv = testGame.addCiv()
+        val ourTile = testGame.tileMap[0, 0]
+        val blockerTile = ourTile.neighbors.first()
+        val destination = blockerTile.neighbors.first { it != ourTile }
+
+        // Force the only route from ourTile to destination through blockerTile.
+        val routeTiles = setOf(ourTile, blockerTile, destination)
+        for (mapTile in testGame.tileMap.values) {
+            if (mapTile !in routeTiles) {
+                mapTile.baseTerrain = Constants.mountain
+                mapTile.setTerrainFeatures(emptyList())
+                mapTile.setTransients()
+            }
+        }
+
+        // A visible foreign civilian makes blockerTile non-enterable for our military unit,
+        // while the hidden foreign military unit must not be revealed as a second blocker.
+        val visibleCivilian = testGame.addUnit("Worker", otherCiv, blockerTile)
+        val hiddenMilitary = testGame.addDefaultMeleeUnitWithUniques(
+            otherCiv, blockerTile, UniqueType.Invisible.text
+        )
+        val ourUnit = testGame.addUnit("Warrior", civInfo, ourTile)
+
+        assertFalse(hiddenMilitary.isVisibleTo(civInfo))
+        assertEquals(visibleCivilian, blockerTile.civilianUnit)
+
+        ourUnit.movement.moveToTile(destination)
+
+        assertEquals(
+            "The visible civilian is the only relevant blocking reason; the unit should continue through the tile.",
+            destination,
+            ourUnit.currentTile
+        )
+        assertFalse(
+            "A hidden military unit must not be revealed when another visible blocker already explains the move restriction.",
+            hiddenMilitary.isVisibleTo(civInfo)
+        )
+    }
+
+    @Test
     fun `discovered invisible unit moving away does not reveal a new occupant of its old tile`() {
         val otherCiv = testGame.addCiv()
         val ourTile = testGame.tileMap[0, 0]
