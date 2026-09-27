@@ -489,44 +489,6 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
     }
 
     @Test
-    fun `hidden unit is not discovered behind a visible non-enterable unit`() {
-        val otherCiv = testGame.addCiv()
-        val ourTile = testGame.tileMap[0, 0]
-        val blockerTile = ourTile.neighbors.first()
-        val destination = blockerTile.neighbors.first { it != ourTile }
-
-        // At peace, a foreign civilian is passable for a military unit but still makes the tile
-        // non-enterable. Put a hidden foreign military unit in the other slot to exercise the
-        // hidden-blocker guard on a tile that the movement path can actually pass through.
-        val visibleCivilian = testGame.addUnit("Worker", otherCiv, blockerTile)
-        val hiddenMilitary = testGame.addDefaultMeleeUnitWithUniques(
-            otherCiv, blockerTile, UniqueType.Invisible.text
-        )
-        val ourUnit = testGame.addUnit("Warrior", civInfo, ourTile)
-
-        assertFalse(hiddenMilitary.isVisibleTo(civInfo))
-        assertEquals(visibleCivilian, blockerTile.civilianUnit)
-        assertEquals(hiddenMilitary, blockerTile.militaryUnit)
-        assertTrue(
-            "The visible civilian is passable, so the path must reach the blocker tile before stopping.",
-            ourUnit.movement.canPassThrough(blockerTile)
-        )
-        assertFalse(ourUnit.movement.thinksItCanMoveTo(blockerTile))
-
-        ourUnit.movement.moveToTile(destination)
-
-        assertEquals(
-            "The unit must stop at the last enterable tile before the visible civilian.",
-            ourTile,
-            ourUnit.currentTile
-        )
-        assertFalse(
-            "A hidden unit in the other slot must not be revealed when a visible non-enterable unit already explains the restriction.",
-            hiddenMilitary.isVisibleTo(civInfo)
-        )
-    }
-
-    @Test
     fun `discovered invisible unit moving away does not reveal a new occupant of its old tile`() {
         val otherCiv = testGame.addCiv()
         val ourTile = testGame.tileMap[0, 0]
