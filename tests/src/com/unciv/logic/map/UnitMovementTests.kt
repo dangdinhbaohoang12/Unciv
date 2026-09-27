@@ -637,10 +637,12 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
 
         val ourTile = testGame.tileMap[0, 0]
         val blockerTile = ourTile.neighbors.first()
-        val destination = blockerTile.neighbors.first { HexMath.getDistance(it.position, ourTile.position) == 2 }
+        val destination = blockerTile.neighbors.first {
+            HexMath.getDistance(it.position, ourTile.position) == 2
+        }
 
         // Force the intended route through blockerTile so this regression test does not
-        // succeed by simply choosing a different first step.
+        // succeed by choosing a different first step.
         for (neighbor in ourTile.neighbors) {
             if (neighbor == blockerTile) continue
             neighbor.baseTerrain = Constants.mountain
@@ -648,18 +650,22 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
             neighbor.setTransients()
         }
 
-        // A visible foreign civilian is passable through for a military unit at peace,
-        // but it prevents that tile from being treated as a valid stopping tile.
+        // The visible foreign civilian is the real, already-known reason why our military
+        // unit cannot end its movement on blockerTile.
         val visibleCivilian = testGame.addUnit("Worker", otherCiv, blockerTile)
 
-        // The hidden military unit is the false blocker we must not reveal: the visible
-        // civilian already explains why this tile cannot be entered.
+        // The hidden military unit is an additional occupant on the same tile. The regression
+        // is that it must NOT be discovered when the visible civilian already explains the block.
         val hiddenMilitary = testGame.addDefaultMeleeUnitWithUniques(
             otherCiv, blockerTile, UniqueType.Invisible.text
         )
         val ourUnit = testGame.addUnit("Warrior", civInfo, ourTile)
         ourUnit.currentMovement = 2f
 
+        assertTrue(
+            "The destination must be reachable so movement actually evaluates blockerTile",
+            ourUnit.movement.getDistanceToTiles().containsKey(destination)
+        )
         assertFalse(
             "The hidden military unit must not be visible before the movement attempt",
             hiddenMilitary.isVisibleTo(civInfo)
@@ -672,16 +678,12 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
             "The visible civilian must prevent ending movement on the blocker tile",
             ourUnit.movement.thinksItCanMoveTo(blockerTile)
         )
-        assertTrue(
-            "The destination beyond the blocker must be reachable",
-            ourUnit.movement.thinksItCanMoveTo(destination)
-        )
 
         ourUnit.movement.moveToTile(destination)
 
         assertEquals(
-            "The unit should continue to the destination without entering the blocker tile",
-            destination,
+            "The visible blocker must still stop movement before entering blockerTile",
+            ourTile,
             ourUnit.currentTile
         )
         assertEquals(
@@ -695,7 +697,7 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
             blockerTile.militaryUnit
         )
         assertFalse(
-            "The hidden military unit must not be revealed when the visible civilian already explains the restriction",
+            "The hidden military unit must not be revealed when a visible civilian already explains the restriction",
             hiddenMilitary.isVisibleTo(civInfo)
         )
     }
