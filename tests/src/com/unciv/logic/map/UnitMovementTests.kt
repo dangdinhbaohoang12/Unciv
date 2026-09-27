@@ -405,7 +405,10 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
         val hiddenUnit = testGame.addDefaultMeleeUnitWithUniques(
             otherCiv, hiddenTile, UniqueType.Invisible.text
         )
+        val carrier = testGame.addUnit("Carrier", civInfo, ourTile)
         val airUnit = testGame.addUnit("Fighter", civInfo, ourTile)
+        airUnit.isTransported = true
+        carrier.putInTile(ourTile)
 
         assertFalse(hiddenUnit.isVisibleTo(civInfo))
 
@@ -434,6 +437,7 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
         assertEquals("Paratrooper must stop before a hidden blocker", ourTile, paratrooper.currentTile)
         assertEquals("Hidden blocker must not be overwritten", hiddenUnit, hiddenTile.militaryUnit)
         assertTrue("Attempting the paradrop must reveal the hidden blocker", hiddenUnit.isVisibleTo(civInfo))
+        assertEquals("Blocked paradrop must leave the unit out of preparing-paradrop mode", null, paratrooper.action)
     }
 
     @Test
