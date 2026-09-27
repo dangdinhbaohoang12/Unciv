@@ -566,16 +566,6 @@ class UnitMovement(val unit: MapUnit) {
         val lastReachableTile = movableTiles.lastOrNull { thinksItCanMoveTo(it) }
             ?: return  // no tiles can pass though/can move to
 
-        // The first tile that can be passed through but not entered may contain another hidden
-        // unit in the other occupancy slot. Check it as well, but let getHiddenBlockingUnit()
-        // suppress the discovery when a different, visible movement reason already explains why
-        // the tile cannot be entered. This is the case the hidden-unit reason must be lowest priority.
-        movableTiles.firstOrNull { !thinksItCanMoveTo(it) }?.let { blockedTile ->
-            getHiddenBlockingUnit(blockedTile)?.let { hiddenBlocker ->
-                notifyHiddenBlockingUnitDiscovered(hiddenBlocker, blockedTile)
-            }
-        }
-
         unit.mostRecentMoveType = UnitMovementMemoryType.UnitMoved
         val pathToLastReachableTile = distanceToTiles.getPathToTile(lastReachableTile)
 
