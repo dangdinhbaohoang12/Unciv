@@ -50,6 +50,17 @@ class SerializationTests {
     }
 
     @Test
+    fun `test discovered invisible unit memory null field keeps initialized list`() {
+        val civilization = json.fromJson(
+            Civilization::class.java,
+            """{"discoveredInvisibleUnitMemories":null}"""
+        )
+
+        Assert.assertNotNull(civilization.discoveredInvisibleUnitMemories)
+        Assert.assertTrue(civilization.discoveredInvisibleUnitMemories.isEmpty())
+    }
+
+    @Test
     fun `test DurationSerializer`() {
         val data = arrayListOf(
             // Java Duration! (even though kotlin.Duration is perfectly fine - all the multiplayer code is outdated in that respect)
