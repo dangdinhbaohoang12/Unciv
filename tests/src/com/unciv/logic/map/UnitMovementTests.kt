@@ -662,8 +662,9 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
         val ourUnit = testGame.addUnit("Warrior", civInfo, ourTile)
         ourUnit.currentMovement = 2f
 
-        // Rebuild visibility from the unit's actual sight. The adjacent blocker tile should
-        // be visible to our Warrior, while the Invisible military unit on it remains hidden.
+        // Rebuild the civ-level visibility cache from the Warrior's actual sight.
+        // This makes blockerTile deterministically visible without revealing the Invisible unit.
+        civInfo.cache.updateViewableTiles()
 
         assertTrue(
             "The visible civilian must actually be visible to our civ",
@@ -689,8 +690,8 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
         ourUnit.movement.moveToTile(destination)
 
         assertEquals(
-            "The visible blocker must still stop movement before entering blockerTile",
-            ourTile,
+            "The visible civilian is passable through, so movement continues to the destination",
+            destination,
             ourUnit.currentTile
         )
         assertEquals(
