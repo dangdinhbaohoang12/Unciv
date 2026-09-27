@@ -524,6 +524,7 @@ class UnitMovement(val unit: MapUnit) {
         }
 
         if (unit.isPreparingParadrop()) { // paradropping units move differently
+            unit.action = null
             // Paradrop is also a direct placement path, so it must not bypass hidden-blocker
             // discovery and overwrite the hidden unit on the destination tile.
             getHiddenBlockingUnit(destination)?.let {
@@ -531,7 +532,6 @@ class UnitMovement(val unit: MapUnit) {
                 return@timeThis
             }
             val origin = unit.getTile()
-            unit.action = null
             unit.removeFromTile()
             unit.putInTile(destination)
             unit.mostRecentMoveType = UnitMovementMemoryType.UnitTeleported
