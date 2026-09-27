@@ -56,6 +56,19 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
     }
 
     @Test
+    fun moveToTileDoesNotThrowWhenDestinationIsNoLongerReachable() {
+        val unit = testGame.addUnit("Warrior", civInfo, tile)
+        val unreachableTile = testGame.tileMap[1, 1]
+        unreachableTile.baseTerrain = "Mountain"
+        unreachableTile.setTerrainFeatures(listOf())
+        unreachableTile.setTransients()
+
+        unit.movement.moveToTile(unreachableTile)
+
+        assertEquals(tile, unit.currentTile)
+    }
+
+    @Test
     fun canPassThroughPassableTerrains() {
         val unit = testGame.addUnit("Warrior", civInfo, null)
         for (terrain in testGame.ruleset.terrains.values) {
