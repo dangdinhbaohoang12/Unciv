@@ -509,6 +509,7 @@ class UnitMovement(val unit: MapUnit) {
             // Direct aerial movement bypasses the normal tile-by-tile loop, so explicitly check
             // for a hidden blocker before placing the unit on the destination tile.
             getHiddenBlockingUnit(destination)?.let {
+                unit.action = null
                 notifyHiddenBlockingUnitDiscovered(it, destination)
                 return@timeThis
             }
