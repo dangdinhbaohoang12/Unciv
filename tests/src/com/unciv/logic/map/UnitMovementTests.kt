@@ -405,10 +405,8 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
         val hiddenUnit = testGame.addDefaultMeleeUnitWithUniques(
             otherCiv, hiddenTile, UniqueType.Invisible.text
         )
-        val carrier = testGame.addUnit("Carrier", civInfo, ourTile)
-        val airUnit = testGame.addUnit("Fighter", civInfo, null)
-        airUnit.isTransported = true
-        airUnit.putInTile(ourTile)
+        testGame.addCity(civInfo, ourTile)
+        val airUnit = testGame.addUnit("Fighter", civInfo, ourTile)
 
         assertFalse(hiddenUnit.isVisibleTo(civInfo))
 
