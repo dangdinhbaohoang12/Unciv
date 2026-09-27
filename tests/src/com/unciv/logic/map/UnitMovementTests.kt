@@ -62,7 +62,12 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
         unreachableTile.baseTerrain = "Mountain"
         unreachableTile.setTerrainFeatures(listOf())
         unreachableTile.setTransients()
+        // With no movement remaining, this tile is outside the current-turn search in both
+        // Classic/BFS and A* pathfinding. This avoids relying on algorithm-specific handling
+        // of impassable tiles that are still within nominal movement range.
+        unit.currentMovement = 0f
 
+        assertFalse(unit.movement.getDistanceToTiles().containsKey(unreachableTile))
         unit.movement.moveToTile(unreachableTile)
 
         assertEquals(tile, unit.currentTile)
