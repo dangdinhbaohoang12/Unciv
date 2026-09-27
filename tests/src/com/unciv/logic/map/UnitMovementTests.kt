@@ -489,34 +489,40 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
     }
 
     @Test
-    fun `hidden unit is not discovered behind a visible blocking unit`() {
+    fun `hidden unit is not discovered behind a visible non-enterable unit`() {
         val otherCiv = testGame.addCiv()
         val ourTile = testGame.tileMap[0, 0]
         val blockerTile = ourTile.neighbors.first()
+        val destination = blockerTile.neighbors.first { it != ourTile }
 
-        // A visible military unit already makes the tile unenterable. A second hidden civilian
-        // on the same tile must not be discovered as an additional movement blocker.
-        val visibleMilitary = testGame.addUnit("Warrior", otherCiv, blockerTile)
-        val hiddenCivilian = testGame.addUnit("Worker", otherCiv, blockerTile).also {
-            it.promotions.addPromotion(testGame.createUnitPromotion(UniqueType.Invisible.text).name)
-        }
+        // At peace, a foreign civilian is passable for a military unit but still makes the tile
+        // non-enterable. Put a hidden foreign military unit in the other slot to exercise the
+        // hidden-blocker guard on a tile that the movement path can actually pass through.
+        val visibleCivilian = testGame.addUnit("Worker", otherCiv, blockerTile)
+        val hiddenMilitary = testGame.addDefaultMeleeUnitWithUniques(
+            otherCiv, blockerTile, UniqueType.Invisible.text
+        )
         val ourUnit = testGame.addUnit("Warrior", civInfo, ourTile)
 
-        assertFalse(hiddenCivilian.isVisibleTo(civInfo))
-        assertEquals(visibleMilitary, blockerTile.militaryUnit)
-        assertEquals(hiddenCivilian, blockerTile.civilianUnit)
+        assertFalse(hiddenMilitary.isVisibleTo(civInfo))
+        assertEquals(visibleCivilian, blockerTile.civilianUnit)
+        assertEquals(hiddenMilitary, blockerTile.militaryUnit)
+        assertTrue(
+            "The visible civilian is passable, so the path must reach the blocker tile before stopping.",
+            ourUnit.movement.canPassThrough(blockerTile)
+        )
         assertFalse(ourUnit.movement.thinksItCanMoveTo(blockerTile))
 
-        ourUnit.movement.moveToTile(blockerTile)
+        ourUnit.movement.moveToTile(destination)
 
         assertEquals(
-            "The visible military blocker must stop movement before the tile.",
+            "The unit must stop at the last enterable tile before the visible civilian.",
             ourTile,
             ourUnit.currentTile
         )
         assertFalse(
-            "A hidden unit must not be revealed when another visible blocker already explains the movement failure.",
-            hiddenCivilian.isVisibleTo(civInfo)
+            "A hidden unit in the other slot must not be revealed when a visible non-enterable unit already explains the restriction.",
+            hiddenMilitary.isVisibleTo(civInfo)
         )
     }
 
