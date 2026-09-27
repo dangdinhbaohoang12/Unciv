@@ -662,6 +662,15 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
         val ourUnit = testGame.addUnit("Warrior", civInfo, ourTile)
         ourUnit.currentMovement = 2f
 
+        // Make the civilian genuinely visible to our civ while the military unit remains
+        // hidden because of its Invisible unique.
+        civInfo.viewableTiles = setOf(ourTile, blockerTile, destination)
+        civInfo.cache.updateViewableTiles()
+
+        assertTrue(
+            "The visible civilian must actually be visible to our civ",
+            visibleCivilian.isVisibleTo(civInfo)
+        )
         assertTrue(
             "The destination must be reachable so movement actually evaluates blockerTile",
             ourUnit.movement.getDistanceToTiles().containsKey(destination)
