@@ -286,7 +286,8 @@ class UnitMovement(val unit: MapUnit) {
         val currentTile = unit.getTile()
         if (currentTile == finalDestination) return currentTile
 
-        // If we can fly, head there directly
+        // Air/paradrop movement is a direct placement, so use the same strict destination
+        // check as normal movement. A hidden blocker must never be bypassed by the direct branch.
         if ((unit.baseUnit.isAirUnit() || unit.isPreparingParadrop()) && canMoveTo(finalDestination)) return finalDestination
 
         val distanceToTiles = getDistanceToTiles()
