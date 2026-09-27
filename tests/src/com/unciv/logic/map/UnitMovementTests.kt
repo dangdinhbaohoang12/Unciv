@@ -402,19 +402,15 @@ class UnitMovementTests(private val pathfindingAlgorithm: PathfindingAlgorithm) 
         val otherCiv = testGame.addCiv()
         val ourTile = testGame.tileMap[0, 0]
         val hiddenTile = ourTile.neighbors.first()
-        ourTile.baseTerrain = Constants.coast
-        ourTile.setTransients()
-        hiddenTile.baseTerrain = Constants.coast
-        hiddenTile.setTransients()
 
+        testGame.addCity(civInfo, ourTile)
+        testGame.addCity(otherCiv, hiddenTile)
         val hiddenUnit = testGame.addDefaultMeleeUnitWithUniques(
             otherCiv, hiddenTile, UniqueType.Invisible.text
         )
-        testGame.addUnit("Carrier", civInfo, ourTile)
         val airUnit = testGame.addUnit("Fighter", civInfo, ourTile)
 
-        assertTrue("Fighter must start transported by the carrier", airUnit.isTransported)
-        assertFalse(hiddenUnit.isVisibleTo(civInfo))
+        assertFalse("Hidden unit must not be visible before movement", hiddenUnit.isVisibleTo(civInfo))
 
         airUnit.movement.moveToTile(hiddenTile)
 
