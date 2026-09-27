@@ -42,7 +42,7 @@ class SerializationTests {
         val memoryJson = json.toJson(memory)
         val civilization = json.fromJson(
             Civilization::class.java,
-            """{"discoveredInvisibleUnitMemories":null,"discoveredInvisibleUnitTiles":[$memoryJson]}"""
+            """{"discoveredInvisibleUnitTiles":[$memoryJson],"discoveredInvisibleUnitMemories":null}"""
         )
 
         Assert.assertEquals(42, civilization.discoveredInvisibleUnitMemories.single().unitId)
