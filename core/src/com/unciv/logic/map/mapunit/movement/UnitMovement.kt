@@ -824,18 +824,6 @@ class UnitMovement(val unit: MapUnit) {
      */
     @Readonly
     private fun getHiddenBlockingUnit(tile: Tile): MapUnit? {
-        // A hidden unit should only be the reason we stop. If another, already-visible rule makes
-        // the tile unenterable, do not reveal an additional hidden unit while merely passing the
-        // tile through (for example, a visible foreign civilian can be passed through but cannot
-        // be entered by a military unit). This keeps invisibility as the last-priority move reason.
-        // Direct air/paradrop movement has its own placement semantics and intentionally performs
-        // hidden-unit discovery even when normal ground-movement checks would reject the tile.
-        if (!unit.baseUnit.isAirUnit() && !unit.isPreparingParadrop()) {
-            val moveReason = getCannotMoveToReason(tile)
-            if (moveReason != null && moveReason != CannotMoveToReason.TileIsNotEmptyHiddenUnit)
-                return null
-        }
-
         // Do not use cannotPassThroughReason() here: it checks only getFirstUnit(), so an
         // occupant in the military slot can mask an invisible foreign civilian in the other slot.
         // Check each slot for both units that are moving together instead.
