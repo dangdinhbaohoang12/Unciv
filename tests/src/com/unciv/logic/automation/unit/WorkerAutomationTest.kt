@@ -335,6 +335,51 @@ internal class WorkerAutomationTest {
     }
 
     @Test
+    fun `should connect small cities with roads despite competing farm tiles`() {
+        for (improvement in listOf(RoadStatus.Road.name, "Farm")) {
+            civInfo.tech.techsResearched.add(testGame.ruleset.tileImprovements[improvement]!!.techRequired!!)
+        }
+
+        val city1 = testGame.addCity(civInfo, testGame.tileMap[3, 3])
+        val city2 = testGame.addCity(civInfo, testGame.tileMap[-3, -3])
+        val cities = listOf(city1, city2)
+        civInfo.addGold(100000000)
+        for (city in cities) {
+            for (tile in city.getCenterTile().getTilesInDistance(3)) {
+                if (tile.owningCity == null)
+                    city.expansion.buyTile(tile)
+                tile.baseTerrain = Constants.grassland
+            }
+        }
+
+        val worker = testGame.addUnit("Worker", civInfo, city1.getCenterTile())
+        for (i in 0..37) {
+            worker.currentMovement = 2f
+            for (unit in civInfo.units.getCivUnits()) {
+                if (unit != worker && unit.isCivilian()) {
+                    unit.disband()
+                }
+            }
+            civInfo.addGold(-civInfo.gold)
+            civInfo.policies.freePolicies = 0
+
+            NextTurnAutomation.automateCivMoves(civInfo)
+            TurnManager(civInfo).endTurn()
+            testGame.gameInfo.turns++
+            for (city in cities) {
+                if (city.population.population != 1)
+                    city.population.addPopulation(1 - city.population.population)
+            }
+        }
+
+        civInfo.cache.updateCitiesConnectedToCapital()
+        assertTrue(
+            "A single worker should connect two small population-1 cities despite competing farmable tiles",
+            city2.isConnectedToCapital()
+        )
+    }
+
+    @Test
     fun `should repair pillaged tile`() {
         // Add the needed tech to construct the improvements below
         for (improvement in listOf("Mine")) {

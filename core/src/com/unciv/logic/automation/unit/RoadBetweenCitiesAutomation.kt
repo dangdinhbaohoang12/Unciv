@@ -18,10 +18,13 @@ import yairm210.purity.annotations.Pure
 import yairm210.purity.annotations.Readonly
 import kotlin.math.max
 
-private object WorkerAutomationConst {
+internal object WorkerAutomationConst {
     /** BFS max size is determined by the aerial distance of two cities to connect, padded with this */
     // two tiles longer than the distance to the nearest connected city should be enough as the 'reach' of a BFS is increased by blocked tiles
     const val maxBfsReachPadding = 2
+
+    /** Offset used when comparing planned roads with normal tile improvements. */
+    const val connectRoadPriorityOffset = 4f
 }
 
 /**
@@ -150,7 +153,7 @@ class RoadBetweenCitiesAutomation(val civInfo: Civilization, private val cachedF
             // Make sure that we are taking in to account the other cities needs
             var roadPriority = max(basePriority, rankRoadCapitalPriority(closeCity.cityStats.getRoadTypeOfConnectionToCapital()))
             if (worstRoadStatus == RoadStatus.None) {
-                roadPriority += 2
+                roadPriority += 4
             } else if (worstRoadStatus == RoadStatus.Road && bestRoadAvailable == RoadStatus.Railroad) {
                 roadPriority += 1
             }
