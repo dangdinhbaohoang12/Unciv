@@ -308,6 +308,9 @@ internal class WorkerAutomationTest {
             // Prevent any sort of worker spawning
             civInfo.addGold(-civInfo.gold)
             civInfo.policies.freePolicies = 0
+            // Keep the regression scenario focused on worker road selection instead of
+            // allowing the civ to research unrelated improvements during the 38-turn run.
+            civInfo.addStat(Stat.Science, -100000)
 
             NextTurnAutomation.automateCivMoves(civInfo)
             TurnManager(civInfo).endTurn()
