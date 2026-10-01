@@ -428,6 +428,17 @@ class WorkerAutomation(
             .filter { it.second > 0f }
             .maxByOrNull { it.second }?.first
 
+        // If this tile was selected because it is part of a planned city-connection road,
+        // keep that strategic reason when choosing the actual improvement to build.
+        // Otherwise a farm/mining improvement can replace the road here even though the
+        // road plan had the higher tile-selection priority.
+        val bestRoadImprovement = roadBetweenCitiesAutomation.bestRoadAvailable.improvement(ruleSet)
+        if (bestRoadImprovement != null
+            && getTileSelectionPriority(tile, unit) > getBasePriority(tile, unit)
+        ) {
+            bestBuildableImprovement = bestRoadImprovement
+        }
+
         if (currentImprovement != null && civInfo.isHuman() && !UncivGame.Current.settings.automatedWorkersReplaceImprovements
             && UncivGame.Current.worldScreen?.autoPlay?.isAutoPlayingAndFullAutoPlayAI() == false) {
             // Note that we might still want to build roads or remove fallout, so we can't exit the function immedietly
