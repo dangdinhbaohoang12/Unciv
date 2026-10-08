@@ -3588,6 +3588,7 @@
 </details>
 <details class="example">
 <summary>All healing effects doubled</summary>
+<p>Does not stack</p>
 <p>Applicable to: Global, Unit</p>
 </details>
 <details class="example">
@@ -4731,6 +4732,7 @@
 </details>
 <details class="example">
 <summary>All healing effects doubled</summary>
+<p>Does not stack</p>
 <p>Applicable to: Global, Unit</p>
 </details>
 <details class="example">
@@ -5835,6 +5837,11 @@
 <p>Applicable to: ModOptions</p>
 </details>
 <h2 id="event-uniques">Event uniques</h2>
+<details class="example">
+<summary>Only the first available choice is offered</summary>
+<p>When triggered, only the first choice (in declaration order) whose conditionals apply is offered. This makes the <abbr title="The name of any event.">event</abbr> equivalent to a <code>when</code>/<code>case</code> statement.</p>
+<p>Applicable to: Event</p>
+</details>
 <details class="example">
 <summary>Only available</summary>
 <p>Meant to be used together with conditionals, like "Only available &lt;after adopting [<abbr title="The name of any policy.">policy</abbr>]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen</p>
