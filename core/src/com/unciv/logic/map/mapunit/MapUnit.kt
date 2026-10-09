@@ -538,7 +538,7 @@ class MapUnit : IsPartOfGameInfoSerialization {
             tile.isWater && isFriendlyTerritory && (baseUnit.isWaterUnit || isTransported) -> 20 // Water unit on friendly water
             tile.isWater && isFriendlyTerritory && cache.canMoveOnWater -> 20 // Treated as a water unit on friendly water
             // Units with "May heal outside of friendly territory" (incl. air units carried on ships) heal on non-friendly water like on neutral land
-            tile.isWater && (baseUnit.isWaterUnit || isTransported || baseUnit.isAirUnit() || cache.canMoveOnWater)
+            tile.isWater && !isFriendlyTerritory && (baseUnit.isWaterUnit || isTransported || baseUnit.isAirUnit() || cache.canMoveOnWater)
                 && hasUnique(UniqueType.HealsOutsideFriendlyTerritory, checkCivInfoUniques = true) -> 10
             tile.isWater -> 0 // All other water cases
             isFriendlyTerritory -> 20 // Allied territory
